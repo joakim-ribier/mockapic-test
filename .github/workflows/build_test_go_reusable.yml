@@ -1,0 +1,34 @@
+name: Build and test Golang project (reusable)
+
+on:
+  workflow_call:
+
+jobs:
+  build_test_and_coverage:
+    runs-on: ubuntu-latest
+    services:
+      gmocky:
+        image: joakimribier/mockapic
+        env:
+          MOCKAPIC_PORT: 3333
+        ports:
+          - 3333:3333
+
+    steps:
+    - name: Docker
+      run: docker container ls -a
+
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22.5'
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./... -race -covermode=atomic -coverprofile=coverage.out
+      env:
+        ENV_MODE: CI
