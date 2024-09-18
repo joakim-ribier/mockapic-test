@@ -76,12 +76,7 @@ func TestMain(m *testing.M) {
 // checking for a valid return value.
 func TestConvertWithRightData(t *testing.T) {
 	// simulate the external API with a right data
-	uuid := createANewMockedRequest(t, exposeHost, MockedRequest{
-		Status:      200,
-		ContentType: "application/json",
-		Charset:     "UTF-8",
-		Body:        `{"timestamp":1725647345,"base":"EUR","rates":{"USD":1.108469}}`,
-	})
+	uuid := createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"USD":1.108469}}`)
 
 	// build the mocked URL with the UUID result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
@@ -100,12 +95,7 @@ func TestConvertWithRightData(t *testing.T) {
 // checking for a valid return value.
 func TestConvertWith500ErrorFromAPI(t *testing.T) {
 	// simulate the external API which returns a 504 - Intenal Server Error
-	uuid := createANewMockedRequest(t, exposeHost, MockedRequest{
-		Status:      500,
-		ContentType: "application/json",
-		Charset:     "UTF-8",
-		Body:        `{"error":"the service is down...."}`,
-	})
+	uuid := createANewMockedRequest(t, exposeHost, 500, `{"error":"the service is down...."}`)
 
 	// build the mocked URL with the UUID result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
@@ -124,12 +114,7 @@ func TestConvertWith500ErrorFromAPI(t *testing.T) {
 // checking for a valid return value.
 func TestConvertWithBadAPIResponse(t *testing.T) {
 	// simulate the external API which returns data but USD rate is missing
-	uuid := createANewMockedRequest(t, exposeHost, MockedRequest{
-		Status:      200,
-		ContentType: "application/json",
-		Charset:     "UTF-8",
-		Body:        `{"timestamp":1725647345,"base":"EUR","rates":{"GBP":1.108469}}`,
-	})
+	uuid := createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"GBP":1.108469}}`)
 
 	// build the mocked URL with the UUID result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
@@ -146,13 +131,9 @@ func TestConvertWithBadAPIResponse(t *testing.T) {
 
 // createANewMockedRequest creates a new mocked request on the 'Mockapic' server
 // and returns the UUID of the new request
-func createANewMockedRequest(t *testing.T, hostAndPort string, mockedRequest MockedRequest) string {
-	bytes, err := jsonsutil.Marshal(mockedRequest)
-	if err != nil {
-		t.Fatalf("Could not build a http request struct: %s", err)
-	}
-
-	httpRequest, err := httpsutil.NewHttpRequest(fmt.Sprintf("http://%s/v1/new", hostAndPort), string(bytes))
+func createANewMockedRequest(t *testing.T, hostAndPort string, status int, body string) string {
+	httpRequest, err := httpsutil.NewHttpRequest(fmt.Sprintf(
+		"http://%s/v1/new?status=%d&contentType=application/json&charset=UTF-8", hostAndPort, status), body)
 	if err != nil {
 		log.Fatalf("Could not create a http server: %s", err)
 	}
