@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/joakim-ribier/go-utils/pkg/httpsutil"
 	"github.com/joakim-ribier/go-utils/pkg/jsonsutil"
@@ -85,6 +86,7 @@ func TestConvertWithRightData(t *testing.T) {
 	// call the service with the mocked URL instead of the external API service
 	r, _, err := NewCurrencyConverter(mockedURL, "API_KEY").Convert("EUR", "USD", 10)
 
+	time.Sleep(16 * time.Second)
 	// assert the same result each time to run the test because the data is mocked
 	if r != 11.08469 || err != nil {
 		t.Errorf(`result: {%v} but expected: {%s}`, r, "1.108469")
@@ -144,7 +146,8 @@ func createANewMockedRequest(t *testing.T, hostAndPort string, status int, body 
 	}
 
 	values, _ := jsonsutil.Unmarshal[map[string]interface{}](httpResponse.Body)
-	return values["uuid"].(string)
+
+	return values["id"].(string)
 }
 
 type MockedRequest struct {
