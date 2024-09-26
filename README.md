@@ -50,7 +50,6 @@ For the first one, I'm testing the nominal use case where the external API retur
 $ curl -X POST 'http://localhost:3333/v1/new' \
 --header 'Content-Type: application/json' \
 --data '{
-	"Name": "Exchange rates - 200",
 	"status": 200,
 	"contentType": "application/json",
 	"charset": "UTF-8",
@@ -60,7 +59,7 @@ $ curl -X POST 'http://localhost:3333/v1/new' \
 								 Dload  Upload   Total   Spent    Left  Speed
 100   408  100    48  100   360  13892   101k --:--:-- --:--:-- --:--:--  132k
 {
-  "uuid": "c1403100-3aa0-484f-8e0f-f2c1db80f371"
+  "id": "c1403100-3aa0-484f-8e0f-f2c1db80f371"
 }
 ```
 
@@ -77,7 +76,6 @@ For the second one, I'm testing the case where the external API returns an inter
 $ curl -X POST 'http://localhost:3333/v1/new' \
 --header 'Content-Type: application/json' \
 --data '{
-	"Name": "Exchange rates - Internal Server Error",
 	"status": 500,
 	"contentType": "application/json",
 	"charset": "UTF-8"
@@ -86,7 +84,7 @@ $ curl -X POST 'http://localhost:3333/v1/new' \
 								 Dload  Upload   Total   Spent    Left  Speed
 100   408  100    48  100   360  13892   101k --:--:-- --:--:-- --:--:--  132k
 {
-  "uuid": "79090265-a1af-47ec-a177-88668582ce28"
+  "id": "79090265-a1af-47ec-a177-88668582ce28"
 }
 ```
 

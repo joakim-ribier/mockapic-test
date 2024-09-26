@@ -5,17 +5,37 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/joakim-ribier/go-utils/pkg/httpsutil"
+	"github.com/joakim-ribier/go-utils/pkg/iosutil"
 	"github.com/joakim-ribier/go-utils/pkg/jsonsutil"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 )
 
 var exposeHost string = "0.0.0.0:3333"
+var workingDirectory string
+
+func defineWorkingDirectory() {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	workingDirectory = dir
+}
 
 func TestMain(m *testing.M) {
+	defineWorkingDirectory()
+
+	// load predefined mocked requests
+	bytes, _ := iosutil.Load("mockapic/mockapic.json")
+	err := iosutil.Write(bytes, workingDirectory+"/exchangeratesapi.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if os.Getenv("ENV_MODE") == "CI" {
 		// on Github action use directly the services container
 		// without dockertest (to have more control on the steps)
@@ -38,6 +58,7 @@ func TestMain(m *testing.M) {
 			Tag:          "latest",
 			Env:          []string{"MOCKAPIC_PORT=3333"},
 			ExposedPorts: []string{"3333"},
+			Mounts:       []string{fmt.Sprintf("%s:%s", workingDirectory+"/exchangeratesapi.json", "/usr/app/mockapic/mockapic.json")},
 		}, func(config *docker.HostConfig) {
 			// set AutoRemove to true so that stopped container goes away by itself
 			config.AutoRemove = true
@@ -72,15 +93,18 @@ func TestMain(m *testing.M) {
 	}
 }
 
-// TestConvertWithRightData calls CurrencyConverter.Convert(string, string, int),
+// TestConvertFromNewMockedRequest calls CurrencyConverter.Convert(string, string, int),
 // checking for a valid return value.
-func TestConvertWithRightData(t *testing.T) {
-	// simulate the external API with a right data
-	uuid := createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"USD":1.108469}}`)
+func TestConvertFromNewMockedRequest(t *testing.T) {
+	var id = "exchangeratesapi"
+	if os.Getenv("ENV_MODE") == "CI" {
+		// simulate the external API with a right data
+		id = createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"USD":1.108469}}`)
+	}
 
-	// build the mocked URL with the UUID result and
+	// build the mocked URL with the id result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
-	mockedURL := fmt.Sprintf("http://%s/v1/%s", exposeHost, uuid)
+	mockedURL := fmt.Sprintf("http://%s/v1/%s", exposeHost, id)
 
 	// call the service with the mocked URL instead of the external API service
 	r, _, err := NewCurrencyConverter(mockedURL, "API_KEY").Convert("EUR", "USD", 10)
@@ -95,11 +119,11 @@ func TestConvertWithRightData(t *testing.T) {
 // checking for a valid return value.
 func TestConvertWith500ErrorFromAPI(t *testing.T) {
 	// simulate the external API which returns a 504 - Intenal Server Error
-	uuid := createANewMockedRequest(t, exposeHost, 500, `{"error":"the service is down...."}`)
+	id := createANewMockedRequest(t, exposeHost, 500, `{"error":"the service is down...."}`)
 
-	// build the mocked URL with the UUID result and
+	// build the mocked URL with the id result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
-	mockedURL := fmt.Sprintf("http://%s/v1/%s", exposeHost, uuid)
+	mockedURL := fmt.Sprintf("http://%s/v1/%s", exposeHost, id)
 
 	// call the service with the mocked URL instead of the external API service
 	r, _, err := NewCurrencyConverter(mockedURL, "API_KEY").Convert("EUR", "USD", 10)
@@ -114,11 +138,11 @@ func TestConvertWith500ErrorFromAPI(t *testing.T) {
 // checking for a valid return value.
 func TestConvertWithBadAPIResponse(t *testing.T) {
 	// simulate the external API which returns data but USD rate is missing
-	uuid := createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"GBP":1.108469}}`)
+	id := createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"GBP":1.108469}}`)
 
-	// build the mocked URL with the UUID result and
+	// build the mocked URL with the id result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
-	mockedURL := fmt.Sprintf("http://%s/v1/%s", exposeHost, uuid)
+	mockedURL := fmt.Sprintf("http://%s/v1/%s", exposeHost, id)
 
 	// call the service with the mocked URL instead of the external API service
 	r, _, err := NewCurrencyConverter(mockedURL, "API_KEY").Convert("EUR", "USD", 10)
@@ -130,7 +154,7 @@ func TestConvertWithBadAPIResponse(t *testing.T) {
 }
 
 // createANewMockedRequest creates a new mocked request on the 'Mockapic' server
-// and returns the UUID of the new request
+// and returns the id of the new request
 func createANewMockedRequest(t *testing.T, hostAndPort string, status int, body string) string {
 	httpRequest, err := httpsutil.NewHttpRequest(fmt.Sprintf(
 		"http://%s/v1/new?status=%d&contentType=application/json&charset=UTF-8", hostAndPort, status), body)
@@ -144,7 +168,8 @@ func createANewMockedRequest(t *testing.T, hostAndPort string, status int, body 
 	}
 
 	values, _ := jsonsutil.Unmarshal[map[string]interface{}](httpResponse.Body)
-	return values["uuid"].(string)
+
+	return values["id"].(string)
 }
 
 type MockedRequest struct {

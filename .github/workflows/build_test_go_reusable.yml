@@ -7,7 +7,7 @@ jobs:
   build_test_and_coverage:
     runs-on: ubuntu-latest
     services:
-      gmocky:
+      mockapic:
         image: joakimribier/mockapic
         env:
           MOCKAPIC_PORT: 3333

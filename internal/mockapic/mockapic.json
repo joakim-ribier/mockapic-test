@@ -1,0 +1,13 @@
+[
+	{
+	  "id":"exchangeratesapi",
+	  "status":200,
+	  "contentType":"application/json",
+	  "charset":"UTF-8",
+	  "headers":{
+		"domain":"github.com/joakim-ribier",
+		"project":"mockapic-example-go"
+	  },
+	  "body":"{\"timestamp\":1725647345,\"base\":\"EUR\",\"rates\":{\"USD\":1.108469}}"
+	}
+  ]
