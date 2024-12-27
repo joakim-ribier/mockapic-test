@@ -53,7 +53,8 @@ $ curl -X POST 'http://localhost:3333/v1/new' \
 	"status": 200,
 	"contentType": "application/json",
 	"charset": "UTF-8",
-	"body": "{\"timestamp\":1725967696,\"rates\":{\"EUR\":1,\"GBP\":0.842772,\"KZT\":527.025041,\"USD\":1.103546}}"
+	"body": "{\"timestamp\":1725967696,\"rates\":{\"EUR\":1,\"GBP\":0.842772,\"KZT\":527.025041,\"USD\":1.103546}}",
+	"path": "/exchangeratesapi"
 }' | jq
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
 								 Dload  Upload   Total   Spent    Left  Speed
@@ -65,7 +66,7 @@ $ curl -X POST 'http://localhost:3333/v1/new' \
 
 ```go
 expectedValue, _, _ := NewCurrencyConverter(
-	"http://localhost:3333/v1/c1403100-3aa0-484f-8e0f-f2c1db80f371", "").Convert("EUR", "USD", 10)
+	"http://localhost:3333/v1/c1403100-3aa0-484f-8e0f-f2c1db80f371", ""). Convert("EUR", "USD", 10) // or with the {path}: http://localhost:3333/v1/exchangeratesapi
 
 expectedValue == 11.03546 // the expected value is always equals to 11.03546, the rate does not change because the data is mocked
 ```
@@ -90,7 +91,8 @@ $ curl -X POST 'http://localhost:3333/v1/new' \
 
 ```go
 expectedValue, _, err := NewCurrencyConverter(
-	"http://localhost:3333/v1/79090265-a1af-47ec-a177-88668582ce28", "").Convert("EUR", "USD", 10)
+	"http://localhost:3333/v1/79090265-a1af-47ec-a177-88668582ce28", "").
+	Convert("EUR", "USD", 10)
 
 expectedValue == -1
 err.Errors() == "Error: Internal Server Error from the API"

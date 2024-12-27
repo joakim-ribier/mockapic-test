@@ -1,9 +1,9 @@
 module github.com/joakim-ribier/mockapic-example-go
 
-go 1.22.5
+go 1.23.4
 
 require (
-	github.com/joakim-ribier/go-utils v0.0.0-20240904192602-b8daf89e70a7
+	github.com/joakim-ribier/go-utils v0.0.0-20241224170118-715e427d8efc
 	github.com/ory/dockertest v3.3.5+incompatible
 )
 

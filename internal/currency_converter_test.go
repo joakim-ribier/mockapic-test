@@ -96,10 +96,10 @@ func TestMain(m *testing.M) {
 // TestConvertFromNewMockedRequest calls CurrencyConverter.Convert(string, string, int),
 // checking for a valid return value.
 func TestConvertFromNewMockedRequest(t *testing.T) {
-	var id = "exchangeratesapi"
+	var id = "id:exchange-rates-api"
 	if os.Getenv("ENV_MODE") == "CI" {
-		// simulate the external API with a right data
-		id = createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"USD":1.108469}}`)
+		id = "/exchangeratesapi"
+		createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"USD":1.108469}}`, "/exchangeratesapi")
 	}
 
 	// build the mocked URL with the id result and
@@ -119,7 +119,7 @@ func TestConvertFromNewMockedRequest(t *testing.T) {
 // checking for a valid return value.
 func TestConvertWith500ErrorFromAPI(t *testing.T) {
 	// simulate the external API which returns a 504 - Intenal Server Error
-	id := createANewMockedRequest(t, exposeHost, 500, `{"error":"the service is down...."}`)
+	id := createANewMockedRequest(t, exposeHost, 500, `{"error":"the service is down...."}`, "")
 
 	// build the mocked URL with the id result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
@@ -138,7 +138,7 @@ func TestConvertWith500ErrorFromAPI(t *testing.T) {
 // checking for a valid return value.
 func TestConvertWithBadAPIResponse(t *testing.T) {
 	// simulate the external API which returns data but USD rate is missing
-	id := createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"GBP":1.108469}}`)
+	id := createANewMockedRequest(t, exposeHost, 200, `{"timestamp":1725647345,"base":"EUR","rates":{"GBP":1.108469}}`, "")
 
 	// build the mocked URL with the id result and
 	// mock the call of https://api.exchangeratesapi.io/v1/latest
@@ -155,9 +155,9 @@ func TestConvertWithBadAPIResponse(t *testing.T) {
 
 // createANewMockedRequest creates a new mocked request on the 'Mockapic' server
 // and returns the id of the new request
-func createANewMockedRequest(t *testing.T, hostAndPort string, status int, body string) string {
+func createANewMockedRequest(t *testing.T, hostAndPort string, status int, body string, path string) string {
 	httpRequest, err := httpsutil.NewHttpRequest(fmt.Sprintf(
-		"http://%s/v1/new?status=%d&contentType=application/json&charset=UTF-8", hostAndPort, status), body)
+		"http://%s/v1/new?status=%d&contentType=application/json&charset=UTF-8&path=%s", hostAndPort, status, path), body)
 	if err != nil {
 		log.Fatalf("Could not create a http server: %s", err)
 	}

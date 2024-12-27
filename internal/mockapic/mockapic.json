@@ -1,6 +1,6 @@
 [
 	{
-	  "id":"exchangeratesapi",
+	  "id":"id:exchange-rates-api",
 	  "status":200,
 	  "contentType":"application/json",
 	  "charset":"UTF-8",
