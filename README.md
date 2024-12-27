@@ -1,5 +1,7 @@
 # mockapic-example-go
 
+![Repository dispatch (called from Mockapic)](https://github.com/joakim-ribier/mockapic-example-go/actions/workflows/repository_dispatch.yml/badge.svg)
+
 # How it works
 
 Before reading this, please make sure to understand correctly the `Mockapic` [README.md](https://github.com/joakim-ribier/mockapic).
@@ -103,3 +105,14 @@ Full example in Go in the `howitworks` folder.
 * [main](cmd/example/main.go)
 * [service](internal/currency_converter.go)
 * [test](internal/currency_converter_test.go)
+
+## Test
+
+The test are automatically executed from [mockapic](https://github.com/joakim-ribier/mockapic) project on each commit on the main branch.
+
+The Github Action that handles the execution of the tests: [repository dispatch](.github/workflows/repository_dispatch.yml).
+
+To execute tests on local:
+```go
+$ go test ./... -v -race -covermode=atomic -coverprofile=coverage.out
+```
